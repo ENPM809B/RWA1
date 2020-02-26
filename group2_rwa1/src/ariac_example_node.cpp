@@ -166,7 +166,6 @@ public:
       "Logical camera: '" << image_msg->models.size() << "' objects.");
 
 //    std::cout << "---------------------------------Camera pose w.r.t world is \n" << image_msg->pose << "\n";
-
 //    tf2_ros::Buffer tfBuffer;
 //    tf2_ros::TransformListener tfListener(tfBuffer);
 
@@ -186,18 +185,21 @@ public:
 //    	else std::cout << "No objects detected by this camera. Moving on.\n";
 
         for(auto it=image_msg->models.begin(); it<image_msg->models.end(); ++it){
-        	std::cout << ".............wrt camera frame...............\n" << it->pose;
+//        	std::cout << ".............wrt camera frame...............\n" << it->pose;
         	geometry_msgs::Pose t_pose = it->pose;
-        	tf2::doTransform(t_pose, t_pose, tf_camera_wrt_world);
-            tf2::Quaternion q(
-            		t_pose.orientation.x,
-					t_pose.orientation.y,
-					t_pose.orientation.z,
-					t_pose.orientation.w);
+        	tf2::Quaternion q(t_pose.orientation.x,t_pose.orientation.y,t_pose.orientation.z,t_pose.orientation.w);
             tf2::Matrix3x3 m(q);
             double roll, pitch, yaw;
+        	m.getRPY(roll, pitch, yaw);
+        	ROS_INFO("object in camera frame : [%f,%f,%f] [%f,%f,%f]", t_pose.position.x,
+        			t_pose.position.y, t_pose.position.z, roll, pitch, yaw);
+        	tf2::doTransform(t_pose, t_pose, tf_camera_wrt_world);
+            q = tf2::Quaternion(t_pose.orientation.x,t_pose.orientation.y,t_pose.orientation.z,t_pose.orientation.w);
+            m = tf2::Matrix3x3(q);
             m.getRPY(roll, pitch, yaw);
-        	std::cout << "..............wrt world frame...............\n" << t_pose << "  roll: "<< roll << "\n  pitch: "<< pitch << "\n  yaw: " << yaw << "\n\n";
+//        	std::cout << "..............wrt world frame...............\n" << t_pose << "  roll: "<< roll << "\n  pitch: "<< pitch << "\n  yaw: " << yaw << "\n\n";
+            ROS_INFO("object in world frame : [%f,%f,%f] [%f,%f,%f]", t_pose.position.x,
+                    			t_pose.position.y, t_pose.position.z, roll, pitch, yaw);
         }
     }
     catch (tf2::TransformException &ex) {
