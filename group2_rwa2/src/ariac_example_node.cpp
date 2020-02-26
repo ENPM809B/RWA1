@@ -193,12 +193,42 @@ public:
 
         std::string var = "piston_rod_part_" + std::to_string(i) + " in world frame: ";
 
-        ROS_INFO_STREAM_ONCE(var << " x: " << transformStamped.transform.translation.x <<
+        ROS_INFO_STREAM(var << " x: " << transformStamped.transform.translation.x <<
         " y: " << transformStamped.transform.translation.y << " z: " <<
         transformStamped.transform.translation.z << " Roll: " <<  roll << " Pitch: " <<
         pitch << " Yaw: " << yaw);
         i++;
       }
+
+      auto j = 1;
+      while (j < 7) {
+        std::string part = "logical_camera_1_gasket_part_" + std::to_string(j) + "_frame";
+        try{
+          transformStamped = tfBuffer.lookupTransform("world", part, ros::Time(0), timeout);
+        }
+        catch (tf2::TransformException &ex) {
+          ROS_WARN("%s",ex.what());
+          ros::Duration(1.0).sleep();
+          // continue;
+        }
+
+        tf2::Quaternion q(
+          transformStamped.transform.rotation.x,
+          transformStamped.transform.rotation.y,
+          transformStamped.transform.rotation.z,
+          transformStamped.transform.rotation.w);
+          tf2::Matrix3x3 m(q);
+          double roll, pitch, yaw;
+          m.getRPY(roll, pitch, yaw);
+
+          std::string var = "gasket_part_" + std::to_string(j) + " in world frame: ";
+
+          ROS_INFO_STREAM(var << " x: " << transformStamped.transform.translation.x <<
+          " y: " << transformStamped.transform.translation.y << " z: " <<
+          transformStamped.transform.translation.z << " Roll: " <<  roll << " Pitch: " <<
+          pitch << " Yaw: " << yaw);
+          j++;
+        }
     }
 
   /// Called when a new Proximity message is received.
