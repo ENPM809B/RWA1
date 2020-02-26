@@ -165,35 +165,46 @@ public:
     ROS_INFO_STREAM_THROTTLE(10,
       "Logical camera: '" << image_msg->models.size() << "' objects.");
 
-    std::cout << "Camera pose w.r.t world is " << image_msg->pose << "\n";
+//    std::cout << "---------------------------------Camera pose w.r.t world is \n" << image_msg->pose << "\n";
 
-    tf2_ros::Buffer tfBuffer;
-    tf2_ros::TransformListener tfListener(tfBuffer);
+//    tf2_ros::Buffer tfBuffer;
+//    tf2_ros::TransformListener tfListener(tfBuffer);
 
-    geometry_msgs::TransformStamped tf_logical_wrt_world;
+    geometry_msgs::TransformStamped tf_camera_wrt_world;
 
     try{
-    	tf_logical_wrt_world = tfBuffer.lookupTransform("world", "logical_camera_rwa1_frame", ros::Time(0), ros::Duration(1.0));
+//    	tf_camera_wrt_world = tfBuffer.lookupTransform("world", "logical_camera_rwa1_frame", ros::Time(0), ros::Duration(1.0));
+    	tf_camera_wrt_world.transform.translation.x = image_msg->pose.position.x;
+    	tf_camera_wrt_world.transform.translation.y = image_msg->pose.position.y;
+    	tf_camera_wrt_world.transform.translation.z = image_msg->pose.position.z;
+    	tf_camera_wrt_world.transform.rotation.w = image_msg->pose.orientation.w;
+    	tf_camera_wrt_world.transform.rotation.x = image_msg->pose.orientation.x;
+    	tf_camera_wrt_world.transform.rotation.y = image_msg->pose.orientation.y;
+    	tf_camera_wrt_world.transform.rotation.z = image_msg->pose.orientation.z;
+
+//    	if( not image_msg->models.size() ) std::cout << "Now Printing the pose of objects detected by this camera w.r.t world\n";
+//    	else std::cout << "No objects detected by this camera. Moving on.\n";
 
         for(auto it=image_msg->models.begin(); it<image_msg->models.end(); ++it){
-        	std::cout << "....................Before....................\n" << it->pose << "\n";
+        	std::cout << ".............wrt camera frame...............\n" << it->pose;
         	geometry_msgs::Pose t_pose = it->pose;
-        	tf2::doTransform(t_pose, t_pose, tf_logical_wrt_world);
+        	tf2::doTransform(t_pose, t_pose, tf_camera_wrt_world);
             tf2::Quaternion q(
-              t_pose.orientation.x,
-			  t_pose.orientation.y,
-			  t_pose.orientation.z,
-			  t_pose.orientation.w);
+            		t_pose.orientation.x,
+					t_pose.orientation.y,
+					t_pose.orientation.z,
+					t_pose.orientation.w);
             tf2::Matrix3x3 m(q);
             double roll, pitch, yaw;
             m.getRPY(roll, pitch, yaw);
-        	std::cout << "....................After....................\n" << t_pose << "\nroll: "<< roll << "\npitch: "<< pitch << "\nyaw: " << yaw << "\n";
+        	std::cout << "..............wrt world frame...............\n" << t_pose << "  roll: "<< roll << "\n  pitch: "<< pitch << "\n  yaw: " << yaw << "\n\n";
         }
     }
     catch (tf2::TransformException &ex) {
     	ROS_WARN("%s",ex.what());
         ros::Duration(1.0).sleep();
     }
+//    std::cout << "--------------------------------------------------------------------\n";
   }
 
   /// Called when a new Proximity message is received.
@@ -276,10 +287,25 @@ int main(int argc, char ** argv) {
     "/ariac/break_beam_1_change", 10,
     &MyCompetitionClass::break_beam_callback, &comp_class);
 
-  // Subscribe to the '/ariac/logical_camera_1' topic.
-  ros::Subscriber logical_camera_subscriber = node.subscribe(
+  // Subscribe to the '/ariac/logical_camera_rwa1' topic.
+  ros::Subscriber logical_camera_subscriber_rwa1 = node.subscribe(
     "/ariac/logical_camera_rwa1", 10,
     &MyCompetitionClass::logical_camera_callback, &comp_class);
+
+  // Subscribe to the '/ariac/logical_camera_1' topic.
+    ros::Subscriber logical_camera_subscriber_1 = node.subscribe(
+    "/ariac/logical_camera_1", 10,
+    &MyCompetitionClass::logical_camera_callback, &comp_class);
+
+  // Subscribe to the '/ariac/logical_camera_2' topic.
+   ros::Subscriber logical_camera_subscriber_2 = node.subscribe(
+   "/ariac/logical_camera_2", 10,
+   &MyCompetitionClass::logical_camera_callback, &comp_class);
+
+  // Subscribe to the '/ariac/logical_camera_3' topic.
+   ros::Subscriber logical_camera_subscriber_3 = node.subscribe(
+   "/ariac/logical_camera_3", 10,
+	&MyCompetitionClass::logical_camera_callback, &comp_class);
 
   // Subscribe to the '/ariac/laser_profiler_1' topic.
   ros::Subscriber laser_profiler_subscriber = node.subscribe(
