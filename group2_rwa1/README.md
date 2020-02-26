@@ -31,5 +31,9 @@ To launch the environment and run the required node
 cd ~/catkin_ws
 source devel/setup.bash
 roslaunch group2_rwa1 group2-rwa1.launch
+```
+
+On Another terminal run
+```
 rosrun group2_rwa1 ariac_example_node
 ```
